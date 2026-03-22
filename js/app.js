@@ -15,7 +15,7 @@ const AppState = {
     preSwallow: {},
     swallowTrials: [],
     therapeutic: { strategies: [] },
-    summary: {}
+    summary: { monochrome: false }
   }
 };
 
@@ -216,7 +216,8 @@ function collectTherapeutic() {
 function collectSummary() {
   AppState.data.summary = {
     clinicalImpression: val('clinical-impression'),
-    followUp: val('follow-up-plan')
+    followUp: val('follow-up-plan'),
+    monochrome: checked('pdf-monochrome')
   };
 }
 
@@ -531,6 +532,11 @@ function val(id) {
   return el ? el.value.trim() : '';
 }
 
+function checked(id) {
+  const el = document.getElementById(id);
+  return el ? el.checked : false;
+}
+
 function bindFormInputs() {
   document.querySelectorAll('input, select, textarea').forEach(el => {
     el.addEventListener('change', () => saveToStorage());
@@ -587,6 +593,14 @@ function populatePatientFields() {
     const el = document.getElementById(id);
     if (el && val) el.value = val;
   });
+
+  // Re-populate summary fields (including monochrome)
+  const s = AppState.data.summary;
+  if (s) {
+    if (document.getElementById('clinical-impression')) document.getElementById('clinical-impression').value = s.clinicalImpression || '';
+    if (document.getElementById('follow-up-plan')) document.getElementById('follow-up-plan').value = s.followUp || '';
+    if (document.getElementById('pdf-monochrome')) document.getElementById('pdf-monochrome').checked = !!s.monochrome;
+  }
 }
 
 /* ════════════════════════════════════════
