@@ -1,4 +1,4 @@
-# FEES Evaluation Web App
+# FEES Evaluation Web App [![Pages Deployment](https://github.com/ShwetankSingh999/FEES_Web_App/actions/workflows/static.yml/badge.svg)](https://github.com/ShwetankSingh999/FEES_Web_App/actions/workflows/static.yml)
 
 A professional, client-side web application for **Fiberoptic Endoscopic Evaluation of Swallowing (FEES)**. This tool allows clinicians to record patient information, document pre-swallow assessments, and perform swallow trials with automated therapy suggestions and PDF report generation.
 
