@@ -42,6 +42,7 @@ function generateFEESReport(formData) {
   }
 
   function colorFromHex(hex) {
+    if (!hex) return [100, 100, 100];
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -252,45 +253,39 @@ function generateFEESReport(formData) {
     });
   }
 
-  /* ──────── Summary of Findings ──────── */
+  /* ──────── Findings & Recommendations ──────── */
   y += 5;
-  sectionTitle('SUMMARY OF FINDINGS');
-
-  if (findings.length === 0) {
-    paragraph('Swallowing function appeared within functional limits for trialed consistencies.');
-  } else {
-    findings.forEach(f => {
-      let fColor = [0, 150, 130];
-      if (f.severity === 'mild') fColor = [180, 140, 0];
-      if (f.severity === 'moderate' || f.severity === 'severe') fColor = [200, 30, 30];
-      if (isMono) fColor = theme.primary;
-      bulletPoint(`${f.label}: ${f.description}`, fColor);
-    });
-  }
-
-  /* ──────── Recommendations ──────── */
-  y += 5;
-  sectionTitle('RECOMMENDATIONS');
+  sectionTitle('FINDINGS & RECOMMENDATIONS');
 
   doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...theme.textDark);
   doc.text('Dietary Recommendations:', MARGIN, y); y += 6;
 
-  diets.forEach(d => {
+  // Manual Diet Info from DetermineDiet
+  if (diets.liquid) {
     checkPage(12);
-    let iddsiColor = colorFromHex(d.color || '#888888');
+    let iddsiColor = colorFromHex(diets.liquid.color || '#888888');
     if (isMono) iddsiColor = [100, 100, 100];
-
     doc.setFillColor(...iddsiColor);
     doc.circle(MARGIN + 4, y - 1.2, 3.5, 'F');
     doc.setFontSize(9); doc.setTextColor(...theme.textWhite);
-    doc.text(d.level.toString(), MARGIN + 4, y, { align: 'center' });
-
+    doc.text(String(diets.liquid.level), MARGIN + 4, y, { align: 'center' });
     doc.setTextColor(...theme.textDark); doc.setFont('helvetica', 'bold');
-    doc.text(d.name, MARGIN + 10, y);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-    doc.text(`(${d.type})`, MARGIN + 10 + doc.getTextWidth(d.name) + 2, y);
+    doc.text('Recommended Liquid: ' + diets.liquid.name, MARGIN + 10, y);
     y += 8;
-  });
+  }
+
+  if (diets.food) {
+    checkPage(12);
+    let iddsiColor = colorFromHex(diets.food.color || '#888888');
+    if (isMono) iddsiColor = [100, 100, 100];
+    doc.setFillColor(...iddsiColor);
+    doc.circle(MARGIN + 4, y - 1.2, 3.5, 'F');
+    doc.setFontSize(9); doc.setTextColor(...theme.textWhite);
+    doc.text(String(diets.food.level), MARGIN + 4, y, { align: 'center' });
+    doc.setTextColor(...theme.textDark); doc.setFont('helvetica', 'bold');
+    doc.text('Recommended Food: ' + diets.food.name, MARGIN + 10, y);
+    y += 12;
+  }
 
   y += 5;
   doc.setFontSize(9.5); doc.setFont('helvetica', 'bold');
@@ -300,28 +295,37 @@ function generateFEESReport(formData) {
     paragraph('No specific compensatory strategies are indicated at this time.');
   } else {
     suggestions.forEach(s => {
-      checkPage(20);
+      checkPage(30);
       doc.setFontSize(9); doc.setFont('helvetica', 'bold');
       doc.setTextColor(...theme.primary);
-      doc.text(`> ${s.name}`, MARGIN, y);
+      doc.text(`> ${s.finding}`, MARGIN, y);
       priorityBadge(s.priority, MARGIN + CONTENT_W - 22, y);
-      y += 5;
+      y += 6;
       
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40); doc.setFontSize(8.5);
-      const desc = doc.splitTextToSize(s.description, CONTENT_W - 4);
-      doc.text(desc, MARGIN + 4, y);
-      y += desc.length * 4.5 + 4;
+      if (s.immediateAction) {
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 30, 30); doc.setFontSize(8.5);
+        doc.text('! ACTION: ' + s.immediateAction, MARGIN + 4, y);
+        y += 6;
+      }
+      
+      if (s.therapies?.length) {
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40); doc.setFontSize(8.5);
+        s.therapies.forEach(ex => {
+           bulletPoint(ex.name + ': ' + ex.description, theme.primary);
+        });
+      }
+      y += 4;
     });
   }
 
   /* ──────── Clinical Impressions ──────── */
   y += 5;
   sectionTitle('CLINICAL IMPRESSIONS');
-  paragraph(formData.summary?.clinicalImpression);
+  paragraph(formData.summary?.clinicalImpression || 'The FEES evaluation was performed to assess pharyngeal swallowing safety and efficiency.');
 
   checkPage(40);
   sectionTitle('FOLLOW-UP PLAN');
-  paragraph(formData.summary?.followUp, 2);
+  paragraph(formData.summary?.followUp || 'To be determined based on clinical progress.', 2);
   y += 15;
 
   /* ──────── Signature Area ──────── */
