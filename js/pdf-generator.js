@@ -129,15 +129,30 @@ function generateFEESReport(formData) {
     doc.rect(0, 0, PAGE_W, firstPage ? 38 : 14, 'F');
 
     if (firstPage) {
+      // Embed Logo from DOM
+      const logoImg = document.querySelector('.header-logo img');
+      if (logoImg && logoImg.complete) {
+        try {
+          // Draw a small white circle/rect behind logo for contrast if needed
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(MARGIN, 6, 22, 22, 2, 2, 'F');
+          doc.addImage(logoImg, 'PNG', MARGIN + 1, 7, 20, 20);
+        } catch (e) {
+          console.warn("Logo image could not be added to PDF:", e);
+        }
+      }
+
+      const textX = logoImg ? MARGIN + 26 : MARGIN;
+      
       doc.setFontSize(18); doc.setFont('helvetica', 'bold');
       doc.setTextColor(...theme.textWhite);
-      doc.text('FEES Evaluation Report', MARGIN, 16);
+      doc.text('FEES Evaluation Report', textX, 16);
       doc.setFontSize(9.5); doc.setFont('helvetica', 'normal');
-      doc.text('Fiberoptic Endoscopic Evaluation of Swallowing', MARGIN, 23);
+      doc.text('Fiberoptic Endoscopic Evaluation of Swallowing', textX, 23);
 
       doc.setFontSize(8.5);
       const dateStr = formData.patient?.evaluationDate || new Date().toLocaleDateString();
-      doc.text(`Date: ${dateStr}    Evaluator: ${formData.patient?.evaluatorName || ''}`, MARGIN, 30);
+      doc.text(`Date: ${dateStr}    Evaluator: ${formData.patient?.evaluatorName || ''}`, textX, 30);
 
       if (!isMono) {
         doc.setFillColor(...theme.accent);
